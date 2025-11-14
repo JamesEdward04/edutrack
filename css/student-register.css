@@ -1,0 +1,297 @@
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: url('../assets/images/edu-bg.png') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 850px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(106, 17, 203, 0.4);
+  text-align: center;
+  border: 2px solid rgba(106, 17, 203, 0.25);
+}
+
+h1 {
+  margin-bottom: 25px;
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: bold;
+}
+
+form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+form button,
+form p,
+form .full-width {
+  grid-column: span 2;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  position: relative;
+}
+
+label {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #e0d6ff;
+  font-weight: 500;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(106, 17, 203, 0.3);
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #6a11cb;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(106, 17, 203, 0.3);
+}
+
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-wrapper input {
+  padding-right: 45px;
+  width: 100%;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6a11cb;
+  transition: color 0.3s ease;
+  width: auto;
+  height: auto;
+}
+
+.toggle-password:hover {
+  color: #9b59b6;
+  transform: translateY(-50%);
+  background: none;
+}
+
+.toggle-password svg,
+.toggle-password .eye-icon {
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  display: block;
+}
+
+/* ===== BUTTON STYLES ===== */
+button,
+.social-button {
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(to right, #6a11cb, #9b59b6);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background 0.3s ease, transform 0.2s ease;
+  width: 100%;
+}
+
+button[type="submit"]:hover,
+.social-button:hover {
+  background: linear-gradient(to right, #9b59b6, #6a11cb);
+  transform: translateY(-2px);
+}
+
+p {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+p a {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+p a:hover {
+  text-decoration: underline;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .container {
+    max-width: 600px;
+    padding: 28px 24px;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 22px;
+  }
+
+  form {
+    gap: 18px;
+  }
+
+  input,
+  select {
+    padding: 11px 14px;
+    font-size: 14px;
+  }
+
+  .password-wrapper input {
+    padding-right: 42px;
+  }
+
+  button,
+  .social-button {
+    padding: 13px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 700px) {
+  form {
+    grid-template-columns: 1fr;
+  }
+
+  form button,
+  form p {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 15px;
+    background-attachment: scroll;
+  }
+
+  .container {
+    padding: 25px 18px;
+    border-radius: 14px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  form {
+    gap: 16px;
+  }
+
+  label {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+
+  input,
+  select {
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  .password-wrapper input {
+    padding-right: 40px;
+  }
+
+  .toggle-password {
+    right: 10px;
+    padding: 6px;
+  }
+
+  .toggle-password svg,
+  .toggle-password .eye-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  button,
+  .social-button {
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  p {
+    font-size: 13px;
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  form {
+    gap: 14px;
+  }
+
+  input,
+  select {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+
+  button,
+  .social-button {
+    padding: 11px;
+    font-size: 13px;
+  }
+}

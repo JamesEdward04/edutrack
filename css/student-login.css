@@ -1,0 +1,268 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: url('../assets/images/edu-bg.png') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 450px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(106, 17, 203, 0.4);
+  text-align: center;
+  border: 2px solid rgba(106, 17, 203, 0.25);
+}
+
+h1 {
+  margin-bottom: 25px;
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: bold;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  position: relative;
+}
+
+label {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #e0d6ff;
+  font-weight: 500;
+}
+
+input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1.5px solid rgba(106, 17, 203, 0.3);
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+input:focus {
+  outline: none;
+  border-color: #6a11cb;
+  background: #fff;
+  box-shadow: 0 0 8px rgba(106, 17, 203, 0.3);
+}
+
+/* Password wrapper for toggle button */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-wrapper input {
+  padding-right: 45px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6a11cb;
+  transition: color 0.3s ease;
+  width: auto;
+}
+
+.toggle-password:hover {
+  color: #9b59b6;
+  transform: none;
+  background: none;
+}
+
+.toggle-password svg {
+  width: 20px;
+  height: 20px;
+}
+
+button, .button {
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(to right, #6a11cb, #9b59b6);
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  transition: background 0.3s ease, transform 0.2s ease;
+  width: 100%; 
+}
+
+button[type="submit"]:hover, .button:hover {
+  background: linear-gradient(to right, #9b59b6, #6a11cb);
+  transform: translateY(-2px);
+}
+
+p {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+p a {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+p a:hover {
+  text-decoration: underline;
+}
+
+.social-buttons {
+  margin-top: 15px;
+}
+
+.social-button {
+  display: block;
+  margin: 8px 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(106, 17, 203, 0.8);
+  color: white;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.social-button:hover {
+  background: rgba(155, 89, 182, 0.9);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .container {
+    padding: 25px 20px;
+    max-width: 400px;
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+
+  input {
+    padding: 11px 14px;
+    font-size: 14px;
+  }
+
+  .password-wrapper input {
+    padding-right: 42px;
+  }
+
+  button, .button {
+    padding: 13px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 15px;
+  }
+
+  .container {
+    padding: 25px 18px;
+    border-radius: 14px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin-bottom: 18px;
+  }
+
+  form {
+    gap: 16px;
+  }
+
+  label {
+    font-size: 13px;
+  }
+
+  input {
+    padding: 10px 12px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  .password-wrapper input {
+    padding-right: 40px;
+  }
+
+  .toggle-password {
+    right: 10px;
+    padding: 6px;
+  }
+
+  .toggle-password svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  button, .button, .social-button {
+    padding: 12px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+  p {
+    font-size: 13px;
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  input {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+
+  button, .social-button {
+    padding: 11px;
+    font-size: 13px;
+  }
+}

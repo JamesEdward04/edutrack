@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+  </style>
+  <link rel="stylesheet" href="../css/student-register.css">
+  <title>Student Registration</title>
+</head>
+<body>
+  
+  <div class="container">
+    <h1>Student Registration Form</h1>
+
+    <form id="registrationForm" action="student_register.php" method="POST">
+
+      <!-- Full Name -->
+      <div class="form-group">
+        <label for="fullName">Full Name</label>
+        <input 
+          type="text" 
+          id="fullName" 
+          name="fullName" 
+          placeholder="Enter full name"
+          required>
+      </div>
+
+      <!-- Student Number -->
+      <div class="form-group">
+        <label for="studentNumber">Student Number</label>
+        <input 
+          type="number" 
+          id="studentNumber" 
+          name="studentNumber" 
+          placeholder="Enter student number"
+          required>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          placeholder="Enter email address"
+          required>
+      </div>
+
+      <!-- Phone Number -->
+      <div class="form-group">
+        <label for="phoneNumber">Phone Number</label>
+        <input 
+          type="number" 
+          id="phoneNumber" 
+          name="phoneNumber" 
+          placeholder="Enter phone number"
+          required>
+      </div>
+
+      <!-- City -->
+      <div class="form-group">
+        <label for="city">City</label>
+        <input 
+          type="text" 
+          id="city" 
+          name="city" 
+          placeholder="Enter your city"
+          required>
+      </div>
+
+      <!-- Province -->
+      <div class="form-group">
+        <label for="province">Province</label>
+        <input 
+          type="text" 
+          id="province" 
+          name="province" 
+          placeholder="Enter your province"
+          required>
+      </div>
+
+      <!-- Gender -->
+      <div class="form-group">
+        <label for="gender">Gender</label>
+        <select id="gender" name="gender" required>
+          <option disabled selected>Select gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+          <option value="Prefer Not To Say">Prefer Not To Say</option>
+        </select>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            placeholder="Enter password"
+            required>
+          <button type="button" class="toggle-password" aria-label="Show password">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="eye-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 
+                9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 
+                0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="password-wrapper">
+          <input 
+            type="password" 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            placeholder="Confirm password"
+            required>
+          <button type="button" class="toggle-password" aria-label="Show confirm password">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="eye-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 
+                9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 
+                0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="social-button full-width">SUBMIT</button>
+
+      <p class="full-width">
+        Already Have an Account? 
+        <a href="student-login.html">Login</a>
+      </p>
+
+    </form>
+  </div>
+
+  <script src="../js/register-toggle.js"></script>
+  
+</body>
+</html>
