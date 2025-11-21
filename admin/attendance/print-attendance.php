@@ -3,7 +3,6 @@
 $DEBUG = isset($_GET['debug']) ? (int)$_GET['debug'] : 0;
 if ($DEBUG) { ini_set('display_errors', 1); error_reporting(E_ALL); }
 
-
 session_start();
 $ROOT = dirname(__DIR__, 2); // from admin/print to project root
 require_once $ROOT . '/vendor/autoload.php';
@@ -58,7 +57,7 @@ if (!$validDate($date_from) || !$validDate($date_to) || $date_from > $date_to) {
   $date_to   = date('Y-m-d');
 }
 
-/*Show selection UI if no student chosen via GET id (match print-grades design) */
+/* Show selection UI if no student chosen via GET id (match print-grades design) */
 if ($studentId <= 0 && empty($_GET['id'])) {
   // Fetch students assigned to this admin and enabled for attendance
   $stmt = $conn->prepare("
@@ -91,6 +90,7 @@ if ($studentId <= 0 && empty($_GET['id'])) {
         --light-bg: #FFFFFF;
         --light-gray: #F8F8FF;
         --text-dark: #1E1E2D;
+        --text-gray: #6B6B83;
       }
 
       * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -180,7 +180,32 @@ if ($studentId <= 0 && empty($_GET['id'])) {
         display:block; margin-bottom:8px; font-weight:600; color:var(--text-dark); font-size:14px;
       }
 
-      select, input[type="date"] {
+      /* search for student select */
+      .search-input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        font-size: 14px;
+        font-family: 'Poppins', sans-serif;
+        background: #fff;
+        transition: all 0.2s ease;
+        margin-bottom: 6px;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: var(--purple-start);
+        box-shadow: 0 0 0 3px rgba(106,17,203,0.08);
+      }
+
+      .search-note {
+        font-size: 12px;
+        color: var(--text-gray);
+        margin-bottom: 10px;
+      }
+
+      select {
         width:100%;
         padding:12px 14px;
         border-radius:10px;
@@ -189,7 +214,99 @@ if ($studentId <= 0 && empty($_GET['id'])) {
         background:#fff;
       }
 
-      select:focus, input:focus { outline:none; border-color:var(--purple-start); box-shadow:0 0 0 3px rgba(106,17,203,0.08); }
+      select:focus {
+        outline:none; border-color:var(--purple-start); box-shadow:0 0 0 3px rgba(106,17,203,0.08);
+      }
+
+      /* Inline date range calendar */
+      .calendar-wrapper {
+        border-radius: 14px;
+        border: 1px solid #e4e4ef;
+        padding: 16px;
+        background: #faf9ff;
+        margin-top: 4px;
+      }
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .calendar-month {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .cal-nav-btn {
+        border-radius: 999px;
+        border: 1px solid #ddd;
+        background: #fff;
+        padding: 4px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+      }
+      .cal-nav-btn:hover {
+        background: #f0eef9;
+        border-color: var(--purple-start);
+      }
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+        font-size: 12px;
+      }
+      .cal-day-header {
+        text-align: center;
+        font-weight: 600;
+        color: var(--text-gray);
+        padding: 4px 0;
+      }
+      .cal-day {
+        height: 34px;
+        border-radius: 8px;
+        text-align: center;
+        padding-top: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        border: 1px solid transparent;
+        background: #fff;
+      }
+      .cal-day.other-month {
+        opacity: 0.22;
+        cursor: default;
+      }
+      .cal-day:hover:not(.other-month) {
+        border-color: var(--purple-start);
+        background: #f4ecff;
+      }
+      .cal-day.today:not(.selected-start):not(.selected-end):not(.in-range) {
+        border-color: #9B59B6;
+        background: #f7ebff;
+        font-weight: 600;
+      }
+      .cal-day.selected-start,
+      .cal-day.selected-end {
+        background: linear-gradient(90deg, var(--purple-start), var(--purple-end));
+        color: #fff;
+        border-color: transparent;
+        font-weight: 700;
+      }
+      .cal-day.in-range {
+        background: #e6ddff;
+        color: var(--text-dark);
+      }
+
+      .range-labels {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--text-gray);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .range-labels strong {
+        color: var(--text-dark);
+      }
 
       .btn {
         width: 100%;
@@ -265,26 +382,59 @@ if ($studentId <= 0 && empty($_GET['id'])) {
         <div class="card-title">Generate Attendance Report</div>
 
         <form method="get" action="" target="_blank" novalidate>
+          <!-- student search -->
+          <div class="form-group">
+            <label for="student_search">Search student</label>
+            <input
+              type="search"
+              id="student_search"
+              class="search-input"
+              placeholder="Type a name to filter "
+              aria-label="Search student by name"
+            >
+          </div>
+
           <div class="form-group">
             <label for="student">Select Student</label>
             <select id="student" name="id" required>
               <option value="">-- Choose a student --</option>
-              <?php while ($row = $res->fetch_assoc()): 
+              <?php while ($row = $res->fetch_assoc()):
                 $sel = ($managed_student > 0 && $managed_student === (int)$row['id']) ? 'selected' : '';
               ?>
-                <option value="<?= (int)$row['id'] ?>" <?= $sel ?>><?= htmlspecialchars($row['fullName']) ?></option>
+                <option value="<?= (int)$row['id'] ?>" <?= $sel ?>>
+                  <?= htmlspecialchars($row['fullName']) ?>
+                </option>
               <?php endwhile; ?>
             </select>
           </div>
 
+          <!-- inline date range calendar -->
           <div class="form-group">
-            <label for="date_from">From</label>
-            <input id="date_from" name="date_from" type="date" value="<?= htmlspecialchars($date_from) ?>">
-          </div>
+            <label>Date Range</label>
 
-          <div class="form-group">
-            <label for="date_to">To</label>
-            <input id="date_to" name="date_to" type="date" value="<?= htmlspecialchars($date_to) ?>">
+            <!-- hidden fields sent to PHP -->
+            <input type="hidden" id="date_from" name="date_from" value="<?= htmlspecialchars($date_from) ?>">
+            <input type="hidden" id="date_to" name="date_to" value="<?= htmlspecialchars($date_to) ?>">
+
+            <div
+              class="calendar-wrapper"
+              id="rangeCalendar"
+              data-initial-from="<?= htmlspecialchars($date_from) ?>"
+              data-initial-to="<?= htmlspecialchars($date_to) ?>"
+            >
+              <div class="calendar-header">
+                <button type="button" class="cal-nav-btn" data-cal-nav="prev"> Prev</button>
+                <div class="calendar-month" id="calMonthLabel">Month YYYY</div>
+                <button type="button" class="cal-nav-btn" data-cal-nav="next">Next </button>
+              </div>
+              <div class="calendar-grid" id="calGrid">
+                <!-- days will be rendered here -->
+              </div>
+              <div class="range-labels">
+                <div>From: <strong id="fromLabel"></strong></div>
+                <div>To:&nbsp;&nbsp;&nbsp;&nbsp;<strong id="toLabel"></strong></div>
+              </div>
+            </div>
           </div>
 
           <button type="submit" class="btn">Generate PDF</button>
@@ -297,6 +447,212 @@ if ($studentId <= 0 && empty($_GET['id'])) {
         <?php endif; ?>
       </div>
     </div>
+
+    <!-- client-side filter for student dropdown + inline range calendar -->
+    <script>
+      // student search
+      (function () {
+        const searchInput = document.getElementById('student_search');
+        const select = document.getElementById('student');
+        if (!searchInput || !select) return;
+
+        const allOptions = Array.from(select.querySelectorAll('option'));
+        const placeholder = allOptions[0];
+        const others = allOptions.slice(1);
+
+        searchInput.addEventListener('input', function (e) {
+          const q = (e.target.value || '').trim().toLowerCase();
+
+          select.innerHTML = '';
+          select.appendChild(placeholder);
+
+          others.forEach(opt => {
+            const text = (opt.textContent || '').toLowerCase();
+            const match = q === '' || text.indexOf(q) !== -1;
+            if (match) {
+              select.appendChild(opt);
+            }
+          });
+        });
+      })();
+
+      // inline date range calendar
+      (function () {
+        const calendarEl = document.getElementById('rangeCalendar');
+        if (!calendarEl) return;
+
+        const dateFromInput = document.getElementById('date_from');
+        const dateToInput   = document.getElementById('date_to');
+        const monthLabel    = document.getElementById('calMonthLabel');
+        const grid          = document.getElementById('calGrid');
+        const fromLabel     = document.getElementById('fromLabel');
+        const toLabel       = document.getElementById('toLabel');
+
+        if (!dateFromInput || !dateToInput || !monthLabel || !grid || !fromLabel || !toLabel) return;
+
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        function parseDate(str) {
+          if (!str) return null;
+          const d = new Date(str);
+          return isNaN(d.getTime()) ? null : d;
+        }
+
+        function formatYmd(d) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+
+        function formatPretty(d) {
+          const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+          return d.toLocaleDateString(undefined, opts);
+        }
+
+        function sameDay(a, b) {
+          return a.getFullYear() === b.getFullYear() &&
+                 a.getMonth() === b.getMonth() &&
+                 a.getDate() === b.getDate();
+        }
+
+        // init dates from PHP defaults
+        let selectedFrom = parseDate(calendarEl.getAttribute('data-initial-from')) || new Date();
+        let selectedTo   = parseDate(calendarEl.getAttribute('data-initial-to'))   || new Date();
+
+        if (selectedFrom > selectedTo) {
+          const tmp = selectedFrom;
+          selectedFrom = selectedTo;
+          selectedTo = tmp;
+        }
+
+        // month being viewed
+        let currentView = new Date(selectedFrom.getTime());
+
+        function updateLabelsAndInputs() {
+          if (selectedFrom) {
+            dateFromInput.value = formatYmd(selectedFrom);
+            fromLabel.textContent = formatPretty(selectedFrom);
+          } else {
+            dateFromInput.value = '';
+            fromLabel.textContent = '—';
+          }
+
+          if (selectedTo) {
+            dateToInput.value = formatYmd(selectedTo);
+            toLabel.textContent = formatPretty(selectedTo);
+          } else if (selectedFrom) {
+            // if only one selected, use same for "to"
+            dateToInput.value = formatYmd(selectedFrom);
+            toLabel.textContent = formatPretty(selectedFrom);
+          } else {
+            dateToInput.value = '';
+            toLabel.textContent = '—';
+          }
+        }
+
+        function renderCalendar() {
+          const year = currentView.getFullYear();
+          const month = currentView.getMonth(); // 0-11
+          const firstOfMonth = new Date(year, month, 1);
+          const startDay = firstOfMonth.getDay();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+          const today = new Date();
+          const todayY = today.getFullYear();
+          const todayM = today.getMonth();
+          const todayD = today.getDate();
+
+          monthLabel.textContent = currentView.toLocaleDateString(undefined, {
+            month: 'long',
+            year: 'numeric'
+          });
+
+          grid.innerHTML = '';
+
+          // weekday headers
+          dayNames.forEach(d => {
+            const h = document.createElement('div');
+            h.className = 'cal-day-header';
+            h.textContent = d;
+            grid.appendChild(h);
+          });
+
+          // blanks before first day
+          for (let i = 0; i < startDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'cal-day other-month';
+            grid.appendChild(empty);
+          }
+
+          // actual days
+          for (let d = 1; d <= daysInMonth; d++) {
+            const cell = document.createElement('div');
+            cell.className = 'cal-day';
+            cell.textContent = d;
+
+            const thisDate = new Date(year, month, d);
+
+            // today marker
+            if (year === todayY && month === todayM && d === todayD) {
+              cell.classList.add('today');
+            }
+
+            // range styles
+            if (selectedFrom && selectedTo) {
+              if (sameDay(thisDate, selectedFrom)) {
+                cell.classList.add('selected-start');
+              } else if (sameDay(thisDate, selectedTo)) {
+                cell.classList.add('selected-end');
+              } else if (thisDate > selectedFrom && thisDate < selectedTo) {
+                cell.classList.add('in-range');
+              }
+            } else if (selectedFrom && !selectedTo) {
+              if (sameDay(thisDate, selectedFrom)) {
+                cell.classList.add('selected-start');
+              }
+            }
+
+            cell.addEventListener('click', function () {
+              // start new range
+              if (!selectedFrom || (selectedFrom && selectedTo)) {
+                selectedFrom = thisDate;
+                selectedTo = null;
+              } else if (selectedFrom && !selectedTo) {
+                // complete range
+                if (thisDate < selectedFrom) {
+                  selectedTo = selectedFrom;
+                  selectedFrom = thisDate;
+                } else {
+                  selectedTo = thisDate;
+                }
+              }
+              // if still no "to", treat as same day
+              updateLabelsAndInputs();
+              renderCalendar();
+            });
+
+            grid.appendChild(cell);
+          }
+        }
+
+        // nav buttons
+        calendarEl.querySelectorAll('[data-cal-nav]').forEach(btn => {
+          btn.addEventListener('click', function () {
+            const dir = this.getAttribute('data-cal-nav');
+            if (dir === 'prev') {
+              currentView.setMonth(currentView.getMonth() - 1);
+            } else if (dir === 'next') {
+              currentView.setMonth(currentView.getMonth() + 1);
+            }
+            renderCalendar();
+          });
+        });
+
+        updateLabelsAndInputs();
+        renderCalendar();
+      })();
+    </script>
   </body>
   </html>
   <?php

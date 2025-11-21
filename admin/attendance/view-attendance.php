@@ -37,9 +37,6 @@ if ($sstmt) {
     $sstmt->close();
 }
 
-
-
-// Build and prepare the attendance query with explicit binding per branch (
 if ($selectedStudent > 0) {
     $sql = "
       SELECT a.attendanceID,
@@ -81,12 +78,12 @@ $result = $stmt->get_result();
 $attendances = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-/* Helper to format date if value exists (short month, no time) */
+
 function friendly_date($val) {
     if (!$val) return 'N/A';
     $t = strtotime($val);
     if ($t === false) return htmlspecialchars($val);
-    return date('M j, Y', $t); // e.g. "Nov 12, 2025"
+    return date('M j, Y', $t); 
 }
 ?>
 <!DOCTYPE html>
@@ -114,7 +111,6 @@ function friendly_date($val) {
       --late: #f59e0b;
     }
 
-    
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
@@ -126,7 +122,7 @@ function friendly_date($val) {
       min-height: 100vh;
     }
 
-    /* ---------- Header (matches view-grades) ---------- */
+    /* Header */
     .site-header {
       background: linear-gradient(90deg, var(--purple-start), var(--purple-end));
       color: #fff;
@@ -175,7 +171,7 @@ function friendly_date($val) {
     }
     .back-btn:hover { background: rgba(255,255,255,0.3); transform: translateX(-2px); }
 
-    /* ---------- Main Content ---------- */
+    /* Main */
     .content {
       flex: 1;
       max-width: 1400px;
@@ -216,6 +212,7 @@ function friendly_date($val) {
       font-size: 14px;
       border: none;
       cursor: pointer;
+      font-family: 'Poppins', sans-serif;
     }
 
     .btn-primary {
@@ -233,8 +230,8 @@ function friendly_date($val) {
     .btn-secondary:hover { background: var(--purple-start); color: #fff; transform: translateY(-2px); }
 
     .success {
-      background: #d1fae5;          
-      color: #065f46;               
+      background: #d1fae5;
+      color: #065f46;
       border: 1px solid #6ee7b7;
       padding: 14px 18px;
       border-radius: 10px;
@@ -258,7 +255,7 @@ function friendly_date($val) {
       font-size:14px;
     }
 
-    /* ---------- Filter Section (Student dropdown) ---------- */
+    /* Filter (student dropdown) */
     .filter-section {
       background: #fafafa;
       padding: 20px;
@@ -321,7 +318,35 @@ function friendly_date($val) {
       font-size: 14px;
     }
 
-    /* ---------- Table ---------- */
+    
+    .search-section {
+      background: #fafafa;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--purple-start);
+      box-shadow: 0 0 0 3px rgba(106,17,203,0.08);
+    }
+
+    /* Table */
     .table-container {
       overflow-x: auto;
       margin-top: 20px;
@@ -353,7 +378,6 @@ function friendly_date($val) {
     .empty { text-align:center; padding:60px 24px; color:var(--text-gray); font-size:15px; }
     .empty-title { font-size:20px; font-weight:700; color:var(--text-dark); margin-bottom:8px; }
 
-    /* ---------- Responsive: Tablets ---------- */
     @media (max-width: 992px) {
       .content { padding: 0 24px; margin: 24px auto; }
       .content-card { padding: 24px; }
@@ -363,7 +387,6 @@ function friendly_date($val) {
       select { min-width: 100%; }
     }
 
-    /* ---------- Responsive: Mobile ---------- */
     @media (max-width: 768px) {
       .site-header { padding: 12px 16px; }
       .site-title { font-size: 18px; }
@@ -375,14 +398,13 @@ function friendly_date($val) {
       .page-title { font-size: 22px; }
       .header-actions { width: 100%; }
       .btn { flex: 1; justify-content: center; padding: 10px 16px; }
-      .filter-section { padding: 16px; }
+      .filter-section, .search-section { padding: 16px; }
       .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
       table { font-size: 13px; }
       th, td { padding: 12px 8px; }
       th { font-size: 12px; }
     }
 
-    /* ---------- Responsive: Small Phones ---------- */
     @media (max-width: 480px) {
       .site-header { padding: 10px 12px; }
       .site-title { font-size: 16px; }
@@ -426,7 +448,7 @@ function friendly_date($val) {
         </div>
       <?php endif; ?>
 
-      <!-- Student dropdown filter (matches student view style) -->
+      <!-- Filter by student (server-side) -->
       <div class="filter-section" aria-label="Filter by student">
         <label class="filter-label">Filter by Student</label>
         <form method="get" action="" class="filter-controls" role="search">
@@ -444,9 +466,23 @@ function friendly_date($val) {
         </form>
       </div>
 
+
+      <?php if (!empty($attendances)): ?>
+        <div class="search-section">
+          <label class="filter-label" for="attendanceSearch">Search Records</label>
+          <input
+            id="attendanceSearch"
+            class="search-input"
+            type="search"
+            placeholder="Search by student name, date, status, or remarks"
+            aria-label="Search attendance records"
+          >
+        </div>
+      <?php endif; ?>
+
       <?php if (!empty($attendances)): ?>
         <div class="table-container" role="region" aria-label="Attendance records">
-          <table role="table" aria-label="Attendance table">
+          <table role="table" aria-label="Attendance table" id="attendanceTable">
             <thead>
               <tr>
                 <th>Student Name</th>
@@ -489,6 +525,27 @@ function friendly_date($val) {
       <?php endif; ?>
     </div>
   </div>
+
+
+  <script>
+    (function () {
+      const input = document.getElementById('attendanceSearch');
+      const table = document.getElementById('attendanceTable');
+      if (!input || !table) return;
+
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+      input.addEventListener('input', function (e) {
+        const q = (e.target.value || '').trim().toLowerCase();
+
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          const match = q === '' || text.indexOf(q) !== -1;
+          row.style.display = match ? '' : 'none';
+        });
+      });
+    })();
+  </script>
 
 <?php $conn->close(); ?>
 </body>

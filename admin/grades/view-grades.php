@@ -230,6 +230,7 @@ $stmt->close();
       font-size: 14px;
       border: none;
       cursor: pointer;
+      font-family: 'Poppins', sans-serif;
     }
 
     .btn-primary {
@@ -333,6 +334,34 @@ $stmt->close();
 
     .clear-btn:hover {
       background: #e0e0e0;
+    }
+
+    /* 🔍 Search Section */
+    .search-section {
+      background: #fafafa;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--purple-start);
+      box-shadow: 0 0 0 3px rgba(106,17,203,0.08);
     }
 
     /* ---------- Info Badge ---------- */
@@ -513,7 +542,8 @@ $stmt->close();
         padding: 10px 16px;
       }
 
-      .filter-section {
+      .filter-section,
+      .search-section {
         padding: 16px;
       }
 
@@ -594,7 +624,8 @@ $stmt->close();
         font-size: 13px;
       }
 
-      .filter-section {
+      .filter-section,
+      .search-section {
         padding: 12px;
       }
 
@@ -646,7 +677,7 @@ $stmt->close();
             </select>
             <button type="submit" class="filter-btn"> Filter</button>
             <?php if ($selectedStudent > 0): ?>
-              <a href="?" class="clear-btn"> Clear</a>
+              <a href="view-grades.php" class="clear-btn"> Clear</a>
             <?php endif; ?>
           </form>
         </div>
@@ -667,9 +698,23 @@ $stmt->close();
         </div>
       <?php endif; ?>
 
+      <!-- Client-side search for table -->
+      <?php if (!empty($grades)): ?>
+        <div class="search-section">
+          <label class="filter-label" for="gradesSearch">Search Records</label>
+          <input
+            id="gradesSearch"
+            class="search-input"
+            type="search"
+            placeholder="Search by student, subject, grade, date, or teacher"
+            aria-label="Search grade records"
+          >
+        </div>
+      <?php endif; ?>
+
       <?php if (!empty($grades)): ?>
         <div class="table-container">
-          <table role="table" aria-label="Student grades">
+          <table role="table" aria-label="Student grades" id="gradesTable">
             <thead>
               <tr>
                 <th>#</th>
@@ -717,6 +762,28 @@ $stmt->close();
       <?php endif; ?>
     </div>
   </div>
+
+  <!--  Client-side search script -->
+  <script>
+    (function () {
+      const input = document.getElementById('gradesSearch');
+      const table = document.getElementById('gradesTable');
+      if (!input || !table) return;
+
+      const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+      input.addEventListener('input', function (e) {
+        const q = (e.target.value || '').trim().toLowerCase();
+
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          const match = q === '' || text.indexOf(q) !== -1;
+          row.style.display = match ? '' : 'none';
+        });
+      });
+    })();
+  </script>
+
 </body>
 </html>
 <?php $conn->close(); ?>

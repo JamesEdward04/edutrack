@@ -178,6 +178,40 @@ body {
   text-decoration: none;
 }
 
+/* 🔍 Search section */
+.search-section {
+  background: #fafafa;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid #e0e0e0;
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--purple-start);
+  box-shadow: 0 0 0 3px rgba(106,17,203,0.08);
+}
+
 /* ---------- Table ---------- */
 .table-container {
   overflow-x: auto;
@@ -222,6 +256,21 @@ th {
 .unassign-btn { background:#ef4444; color:#fff; border:none; font-family:'Poppins',sans-serif; font-weight:700; }
 .unassign-btn:hover { background:#dc2626; }
 
+/* Empty state */
+.empty {
+  text-align:center;
+  padding:40px 16px;
+  color:var(--text-gray);
+}
+.empty h3 {
+  font-size:20px;
+  margin-bottom:8px;
+}
+.empty p {
+  font-size:14px;
+  margin-bottom:12px;
+}
+
 /* mobile: stacked rows  */
 @media (max-width: 768px) {
   .content { padding: 0 24px; margin: 24px auto; }
@@ -264,8 +313,21 @@ th {
       </div>
 
       <?php if (!empty($assigned)): ?>
+
+        <!--  Search box -->
+        <div class="search-section">
+          <label for="studentSearch" class="search-label">Search Students</label>
+          <input
+            type="search"
+            id="studentSearch"
+            class="search-input"
+            placeholder="Search by name, student number, email, or phone"
+            aria-label="Search assigned students"
+          >
+        </div>
+
         <div class="table-container" role="region" aria-label="Assigned students">
-          <table role="table" aria-label="Assigned students table">
+          <table role="table" aria-label="Assigned students table" id="studentsTable">
             <thead>
               <tr>
                 <th>Name</th>
@@ -316,5 +378,27 @@ th {
   </div>
 
 <?php $conn->close(); ?>
+
+<!-- Client-side search filter -->
+<script>
+  (function () {
+    const searchInput = document.getElementById('studentSearch');
+    const table = document.getElementById('studentsTable');
+    if (!searchInput || !table) return;
+
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+    searchInput.addEventListener('input', function (e) {
+      const q = (e.target.value || '').trim().toLowerCase();
+
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const match = q === '' || text.indexOf(q) !== -1;
+        row.style.display = match ? '' : 'none';
+      });
+    });
+  })();
+</script>
+
 </body>
 </html>

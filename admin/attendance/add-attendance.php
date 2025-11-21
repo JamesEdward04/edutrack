@@ -2,7 +2,7 @@
 session_start();
 include '../../db_connect.php';
 
-// Redirect if not logged in
+// check admin login
 if (!isset($_SESSION['adminID'])) {
   header("Location: ../admin-login.html");
   exit();
@@ -13,31 +13,32 @@ $admin_name = $_SESSION['adminName'] ?? 'Admin';
 
 $error = null;
 
-/* preselected student from Manage button (if any) */
+// preselected student
 $preselected_student = isset($_SESSION['managed_student_id']) ? (int)$_SESSION['managed_student_id'] : 0;
 
-/*  Handle POST submission */
+// handle submit
 if (isset($_POST['add_attendance'])) {
-  // 1) Read inputs
+  // get inputs
   $studentID = isset($_POST['studentID']) ? (int)$_POST['studentID'] : 0;
   $date      = trim($_POST['date'] ?? '');
   $status    = trim($_POST['status'] ?? '');
   $remarks   = trim($_POST['remarks'] ?? '');
 
-  //  Basic validation
+  // allowed status values
   $allowed_status = ['Present', 'Absent', 'Late'];
 
-  // date format check (YYYY-MM-DD)
+  // check date format
   $date_ok = false;
   if ($date !== '') {
     $dt = DateTime::createFromFormat('Y-m-d', $date);
     $date_ok = $dt && $dt->format('Y-m-d') === $date;
   }
 
+  // basic validation
   if ($studentID <= 0 || !$date_ok || !in_array($status, $allowed_status, true)) {
     $error = 'Please select a valid student, date, and status.';
   } else {
-    //  Enforce Attendance toggle + admin ownership using admin_students mapping
+    // check if student is assigned to this admin and has attendance enabled
     $chk = $conn->prepare("
       SELECT s.has_attendance_enabled
       FROM students s
@@ -60,13 +61,12 @@ if (isset($_POST['add_attendance'])) {
       $chk->close();
     }
 
-    //  Insert if OK
+    // insert if ok
     if ($error === null) {
       $ins = $conn->prepare("
         INSERT INTO attendance (admin_id, studentID, `date`, `status`, remarks)
         VALUES (?, ?, ?, ?, ?)
       ");
-      // iisss => int, int, string, string, string
       if (!$ins) {
         $error = 'Database prepare error: ' . $conn->error;
       } else {
@@ -84,8 +84,7 @@ if (isset($_POST['add_attendance'])) {
   }
 }
 
-/* Fetch students for dropdown
- Only Attendance-enabled students that are assigned to this admin */
+// get students for dropdown (only attendance-enabled + assigned to this admin)
 $stu = $conn->prepare("
   SELECT s.id, s.fullName, s.studentNumber
   FROM admin_students a
@@ -97,6 +96,9 @@ $stu->bind_param('i', $admin_id);
 $stu->execute();
 $students = $stu->get_result();
 $hasOptions = ($students && $students->num_rows > 0);
+
+// keep date value (default today)
+$currentDateValue = $_POST['date'] ?? date('Y-m-d');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -122,7 +124,6 @@ $hasOptions = ($students && $students->num_rows > 0);
       --error: #ef4444;
     }
 
-   
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; }
     body {
@@ -134,7 +135,7 @@ $hasOptions = ($students && $students->num_rows > 0);
       min-height: 100vh;
     }
 
-    /* ---------- Header ---------- */
+    /* header */
     .site-header {
       background: linear-gradient(90deg, var(--purple-start), var(--purple-end));
       color: #fff;
@@ -148,11 +149,9 @@ $hasOptions = ($students && $students->num_rows > 0);
       top: 0;
       z-index: 1200;
     }
-
     .header-left { display:flex; align-items:center; gap:16px; }
     .site-title { font-size:22px; font-weight:700; color:#fff; margin:0; }
     .header-right { display:flex; align-items:center; gap:16px; }
-
     .welcome-text { color: #fff; font-weight:500; font-size:14px; }
     .logout {
       background: var(--gold);
@@ -166,7 +165,11 @@ $hasOptions = ($students && $students->num_rows > 0);
       white-space: nowrap;
       font-size: 14px;
     }
-    .logout:hover { background: #e6c200; transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
+    .logout:hover {
+      background: #e6c200;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    }
 
     .back-btn {
       background: rgba(255,255,255,0.2);
@@ -181,9 +184,12 @@ $hasOptions = ($students && $students->num_rows > 0);
       gap: 6px;
       font-size: 14px;
     }
-    .back-btn:hover { background: rgba(255,255,255,0.3); transform: translateX(-2px); }
+    .back-btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateX(-2px);
+    }
 
-    /* ---------- Main Content ---------- */
+    /* main layout */
     .content {
       flex: 1;
       max-width: 800px;
@@ -191,14 +197,12 @@ $hasOptions = ($students && $students->num_rows > 0);
       margin: 40px auto;
       padding: 0 40px;
     }
-
     .content-card {
       background: var(--light-bg);
       border-radius: 16px;
       padding: 40px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.06);
     }
-
     .page-title {
       font-size: 28px;
       font-weight: 700;
@@ -206,21 +210,6 @@ $hasOptions = ($students && $students->num_rows > 0);
       margin: 0 0 24px 0;
       text-align: center;
     }
-
-    /* ---------- Alerts ---------- */
-    .note {
-      background: #faf7ff;
-      border: 1px solid #e1d5ff;
-      padding: 14px 16px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      font-size: 14px;
-      color: #4b3b86;
-      line-height: 1.6;
-    }
-
-    .note strong { font-weight: 700; }
-    .note a { color: var(--purple-start); font-weight: 700; text-decoration: underline; }
 
     .error {
       background: #fee2e2;
@@ -236,14 +225,36 @@ $hasOptions = ($students && $students->num_rows > 0);
       gap: 10px;
     }
 
-    /* ---------- Form ---------- */
+    /* form */
     form { margin-top: 8px; }
     .form-group { margin-bottom: 18px; }
     label { display:block; font-weight:600; margin-bottom:8px; color:var(--text-dark); font-size:14px; }
 
+    /* student search */
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      margin-bottom: 6px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--purple-start);
+      box-shadow: 0 0 0 3px rgba(106,17,203,0.08);
+    }
+    .search-note {
+      font-size: 12px;
+      color: var(--text-gray);
+      margin-bottom: 8px;
+    }
+
     select,
-    input[type="text"],
-    input[type="date"] {
+    input[type="text"] {
       width: 100%;
       padding: 12px 14px;
       border: 2px solid #e0e0e0;
@@ -254,14 +265,12 @@ $hasOptions = ($students && $students->num_rows > 0);
       transition: all 0.2s ease;
       background: #fff;
     }
-
     select:focus,
     input:focus {
       outline: none;
       border-color: var(--purple-start);
       box-shadow: 0 0 0 3px rgba(106,17,203,0.1);
     }
-
     select:disabled,
     input:disabled {
       background: #f5f5f5;
@@ -269,14 +278,95 @@ $hasOptions = ($students && $students->num_rows > 0);
       opacity: 0.6;
     }
 
-    /* ---------- Action Buttons ---------- */
+    /* calendar */
+    .calendar-wrapper {
+      border-radius: 14px;
+      border: 1px solid #e4e4ef;
+      padding: 16px;
+      background: #faf9ff;
+    }
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .calendar-month {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .cal-nav-btn {
+      border-radius: 999px;
+      border: 1px solid #ddd;
+      background: #fff;
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+    }
+    .cal-nav-btn:hover {
+      background: #f0eef9;
+      border-color: var(--purple-start);
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      font-size: 12px;
+    }
+    .cal-day-header {
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-gray);
+      padding: 4px 0;
+    }
+    .cal-day {
+      height: 34px;
+      border-radius: 8px;
+      text-align: center;
+      padding-top: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      border: 1px solid transparent;
+      background: #fff;
+    }
+    .cal-day.other-month {
+      opacity: 0.25;
+      cursor: default;
+    }
+    .cal-day:hover:not(.other-month) {
+      border-color: var(--purple-start);
+      background: #f4ecff;
+    }
+    .cal-day.selected {
+      background: linear-gradient(90deg, var(--purple-start), var(--purple-end));
+      color: #fff;
+      border-color: transparent;
+      font-weight: 700;
+    }
+    .cal-day.today:not(.selected) {
+      border-color: #9B59B6;
+      background: #f7ebff;
+      font-weight: 600;
+    }
+
+    .selected-date-label {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-gray);
+    }
+    .selected-date-label strong {
+      color: var(--text-dark);
+    }
+
+    /* buttons */
     .actions {
       margin-top: 20px;
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
     }
-
     .btn {
       flex: 1;
       min-width: 200px;
@@ -295,57 +385,47 @@ $hasOptions = ($students && $students->num_rows > 0);
       justify-content: center;
       gap: 8px;
     }
-
     .btn-primary {
       color: #fff;
       background: linear-gradient(90deg, var(--purple-start), var(--purple-end));
       box-shadow: 0 6px 18px rgba(106,17,203,0.25);
     }
-
     .btn-primary:hover:not(:disabled) {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(106,17,203,0.35);
     }
-
     .btn-primary:disabled {
       opacity: 0.5;
       cursor: not-allowed;
       transform: none;
     }
-
     .btn-secondary {
       background: #f0eef9;
       color: var(--purple-start);
       border: 2px solid #e1dbfa;
       text-decoration: none;
     }
-
     .btn-secondary:hover {
       background: #eae7fb;
       transform: translateY(-2px);
     }
 
-    /* ---------- Responsive: Tablets ---------- */
+    /* responsive */
     @media (max-width: 992px) {
       .content {
         padding: 0 24px;
         margin: 24px auto;
       }
-
       .content-card {
         padding: 32px;
       }
-
       .page-title {
         font-size: 24px;
       }
-
       .site-title {
         font-size: 20px;
       }
     }
-
-    /* ---------- Responsive: Mobile ---------- */
     @media (max-width: 768px) {
       .site-header { padding: 12px 16px; }
       .site-title { font-size: 18px; }
@@ -358,8 +438,6 @@ $hasOptions = ($students && $students->num_rows > 0);
       .actions { flex-direction: column; }
       .btn { width: 100%; min-width: auto; }
     }
-
-    /* ---------- Responsive: Small Phones ---------- */
     @media (max-width: 480px) {
       .site-header { padding: 10px 12px; }
       .site-title { font-size: 16px; }
@@ -374,7 +452,7 @@ $hasOptions = ($students && $students->num_rows > 0);
 <body>
   <header class="site-header">
     <div class="header-left">
-      <a href="../admin-dashboard.php" class="back-btn">← Back to Home</a>
+      <a href="../admin-dashboard.php" class="back-btn">← Back to Dashboard</a>
       <h1 class="site-title">Add Attendance</h1>
     </div>
 
@@ -401,13 +479,25 @@ $hasOptions = ($students && $students->num_rows > 0);
       <?php endif; ?>
 
       <?php if (!$hasOptions): ?>
-        <div class="note">
-          No students assigned to you are currently <strong>enabled for Attendance</strong>. Go to
-          <a href="../students/view-students.php">Students</a>
+        <div class="error" style="background:#fef3c7;border-color:#facc15;color:#92400e;">
+          No students assigned to you are enabled for Attendance. Enable Attendance under <strong>Students</strong> first.
         </div>
       <?php endif; ?>
 
       <form method="POST" autocomplete="off">
+        <!-- student search + select -->
+        <div class="form-group">
+          <label for="student_search">Search student</label>
+          <input
+            type="search"
+            id="student_search"
+            class="search-input"
+            placeholder="Search by name or student number"
+            aria-label="Search student by name or number"
+            <?= $hasOptions ? '' : 'disabled' ?>
+          >
+        </div>
+
         <div class="form-group">
           <label for="studentID">Student</label>
           <select name="studentID" id="studentID" required <?= $hasOptions ? '' : 'disabled' ?>>
@@ -415,18 +505,48 @@ $hasOptions = ($students && $students->num_rows > 0);
             <?php if ($hasOptions): ?>
               <?php while ($row = $students->fetch_assoc()):
                 $sel = ($preselected_student > 0 && $preselected_student === (int)$row['id']) ? 'selected' : '';
+                $label = $row['fullName'] . (trim($row['studentNumber']) ? ' — ' . $row['studentNumber'] : '');
               ?>
-                <option value="<?= (int)$row['id'] ?>" <?= $sel ?>>
-                  <?= htmlspecialchars($row['fullName'] . (trim($row['studentNumber']) ? ' — ' . $row['studentNumber'] : '')) ?>
+                <option
+                  value="<?= (int)$row['id'] ?>"
+                  <?= $sel ?>
+                  data-name="<?= htmlspecialchars(strtolower($row['fullName'])) ?>"
+                  data-number="<?= htmlspecialchars(strtolower($row['studentNumber'])) ?>"
+                >
+                  <?= htmlspecialchars($label) ?>
                 </option>
               <?php endwhile; ?>
             <?php endif; ?>
           </select>
         </div>
 
+        <!-- full inline calendar date picker -->
         <div class="form-group">
           <label for="date">Date</label>
-          <input type="date" name="date" id="date" required value="<?= htmlspecialchars($_POST['date'] ?? date('Y-m-d')) ?>" <?= $hasOptions ? '' : 'disabled' ?>>
+
+          <!-- hidden real date input (for PHP) -->
+          <input
+            type="hidden"
+            name="date"
+            id="date"
+            required
+            value="<?= htmlspecialchars($currentDateValue) ?>"
+          >
+
+          <div class="calendar-wrapper" id="attendanceCalendar"
+               data-initial-date="<?= htmlspecialchars($currentDateValue) ?>">
+            <div class="calendar-header">
+              <button type="button" class="cal-nav-btn" data-cal-nav="prev"> Prev</button>
+              <div class="calendar-month" id="calMonthLabel">Month YYYY</div>
+              <button type="button" class="cal-nav-btn" data-cal-nav="next">Next </button>
+            </div>
+            <div class="calendar-grid" id="calGrid">
+              <!-- days render here -->
+            </div>
+            <div class="selected-date-label" id="selectedDateLabel">
+              Selected date: <strong></strong>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
@@ -441,7 +561,14 @@ $hasOptions = ($students && $students->num_rows > 0);
 
         <div class="form-group">
           <label for="remarks">Remarks</label>
-          <input type="text" name="remarks" id="remarks" placeholder="Optional" value="<?= htmlspecialchars($_POST['remarks'] ?? '') ?>" <?= $hasOptions ? '' : 'disabled' ?>>
+          <input
+            type="text"
+            name="remarks"
+            id="remarks"
+            placeholder="Optional"
+            value="<?= htmlspecialchars($_POST['remarks'] ?? '') ?>"
+            <?= $hasOptions ? '' : 'disabled' ?>
+          >
         </div>
 
         <div class="actions">
@@ -455,6 +582,165 @@ $hasOptions = ($students && $students->num_rows > 0);
       </form>
     </div>
   </div>
+
+  <script>
+    // simple student search
+    (function () {
+      const searchInput = document.getElementById('student_search');
+      const select = document.getElementById('studentID');
+      if (!searchInput || !select) return;
+
+      const allOptions = Array.from(select.querySelectorAll('option'));
+      const placeholder = allOptions[0];
+      const others = allOptions.slice(1);
+
+      searchInput.addEventListener('input', function (e) {
+        const q = (e.target.value || '').trim().toLowerCase();
+
+        select.innerHTML = '';
+        select.appendChild(placeholder);
+
+        others.forEach(opt => {
+          const name = (opt.getAttribute('data-name') || '').toLowerCase();
+          const num  = (opt.getAttribute('data-number') || '').toLowerCase();
+          const text = (opt.textContent || '').toLowerCase();
+
+          const match =
+            q === '' ||
+            name.indexOf(q) !== -1 ||
+            num.indexOf(q) !== -1 ||
+            text.indexOf(q) !== -1;
+
+          if (match) {
+            select.appendChild(opt);
+          }
+        });
+      });
+    })();
+
+    // inline calendar for date
+    (function () {
+      const calendarEl = document.getElementById('attendanceCalendar');
+      const dateInput = document.getElementById('date');
+      const monthLabel = document.getElementById('calMonthLabel');
+      const grid = document.getElementById('calGrid');
+      const selectedLabel = document.getElementById('selectedDateLabel').querySelector('strong');
+
+      if (!calendarEl || !dateInput || !monthLabel || !grid || !selectedLabel) return;
+
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+      // parse initial date (from PHP)
+      const initial = calendarEl.getAttribute('data-initial-date') || '';
+      let currentDate = initial ? new Date(initial) : new Date();
+      if (isNaN(currentDate.getTime())) currentDate = new Date();
+
+      let selectedDate = initial ? new Date(initial) : new Date();
+      if (isNaN(selectedDate.getTime())) selectedDate = new Date();
+
+      function formatYmd(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+
+      function formatPretty(d) {
+        const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+        return d.toLocaleDateString(undefined, opts);
+      }
+
+      function sameDay(a, b) {
+        return a.getFullYear() === b.getFullYear() &&
+               a.getMonth() === b.getMonth() &&
+               a.getDate() === b.getDate();
+      }
+
+      function renderCalendar() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth(); // 0-based
+        const firstOfMonth = new Date(year, month, 1);
+        const startDay = firstOfMonth.getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        const today = new Date();
+        const todayY = today.getFullYear();
+        const todayM = today.getMonth();
+        const todayD = today.getDate();
+
+        monthLabel.textContent = currentDate.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'long'
+        });
+
+        grid.innerHTML = '';
+
+        // weekday headers
+        dayNames.forEach(d => {
+          const h = document.createElement('div');
+          h.className = 'cal-day-header';
+          h.textContent = d;
+          grid.appendChild(h);
+        });
+
+        // empty slots before 1st
+        for (let i = 0; i < startDay; i++) {
+          const empty = document.createElement('div');
+          empty.className = 'cal-day other-month';
+          grid.appendChild(empty);
+        }
+
+        // days of this month
+        for (let d = 1; d <= daysInMonth; d++) {
+          const cell = document.createElement('div');
+          cell.className = 'cal-day';
+          cell.textContent = d;
+
+          const thisDate = new Date(year, month, d);
+
+          // today highlight
+          if (year === todayY && month === todayM && d === todayD) {
+            cell.classList.add('today');
+          }
+
+          // selected highlight
+          if (selectedDate && sameDay(thisDate, selectedDate)) {
+            cell.classList.add('selected');
+          }
+
+          cell.addEventListener('click', function () {
+            selectedDate = thisDate;
+            dateInput.value = formatYmd(selectedDate);
+            selectedLabel.textContent = formatPretty(selectedDate);
+            renderCalendar(); // re-render to update selected state
+          });
+
+          grid.appendChild(cell);
+        }
+      }
+
+      // nav buttons
+      calendarEl.querySelectorAll('[data-cal-nav]').forEach(btn => {
+        btn.addEventListener('click', function () {
+          const dir = this.getAttribute('data-cal-nav');
+          if (dir === 'prev') {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+          } else if (dir === 'next') {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+          }
+          renderCalendar();
+        });
+      });
+
+      // initial label + hidden input
+      if (selectedDate) {
+        dateInput.value = formatYmd(selectedDate);
+        selectedLabel.textContent = formatPretty(selectedDate);
+      }
+
+      renderCalendar();
+    })();
+  </script>
 </body>
 </html>
 <?php

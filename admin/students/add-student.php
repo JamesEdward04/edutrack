@@ -210,6 +210,24 @@ if ($res) {
     .form-group { margin-bottom: 18px; }
     label { display:block; font-weight:600; margin-bottom:8px; color:var(--text-dark); font-size:14px; }
 
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      margin-bottom: 8px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--purple-start);
+      box-shadow: 0 0 0 3px rgba(106,17,203,0.08);
+    }
+
     select {
       width: 100%;
       padding: 12px 14px;
@@ -323,6 +341,19 @@ if ($res) {
       <?php endif; ?>
 
       <form method="POST" autocomplete="off">
+       
+        <div class="form-group">
+          <label for="student_search">Search student</label>
+          <input
+            type="search"
+            id="student_search"
+            class="search-input"
+            placeholder="Search by name or student number"
+            aria-label="Search student by name or number"
+          >
+          <div class="note">Type to filter the student list below. </div>
+        </div>
+
         <div class="form-group">
           <label for="student_id">Select a student</label>
           <select name="student_id" id="student_id" required>
@@ -332,7 +363,12 @@ if ($res) {
                 ? $s['fullName'] . ' — ' . $s['studentNumber']
                 : $s['fullName'];
             ?>
-              <option value="<?= (int)$s['id'] ?>"><?= htmlspecialchars($label) ?></option>
+              <option value="<?= (int)$s['id'] ?>"
+                data-name="<?= htmlspecialchars(strtolower($s['fullName'])) ?>"
+                data-number="<?= htmlspecialchars(strtolower($s['studentNumber'])) ?>"
+              >
+                <?= htmlspecialchars($label) ?>
+              </option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -344,5 +380,45 @@ if ($res) {
       </form>
     </div>
   </div>
+
+  <script>
+    (function () {
+      const searchInput = document.getElementById('student_search');
+      const select = document.getElementById('student_id');
+      if (!searchInput || !select) return;
+
+      const options = Array.from(select.options); // includes placeholder as index 0
+
+      searchInput.addEventListener('input', function (e) {
+        const q = (e.target.value || '').trim().toLowerCase();
+
+        options.forEach((opt, index) => {
+          // keep placeholder always visible
+          if (index === 0) {
+            opt.hidden = false;
+            return;
+          }
+
+          const name = (opt.getAttribute('data-name') || '').toLowerCase();
+          const num  = (opt.getAttribute('data-number') || '').toLowerCase();
+          const text = (opt.textContent || '').toLowerCase();
+
+          const match =
+            q === '' ||
+            name.indexOf(q) !== -1 ||
+            num.indexOf(q) !== -1 ||
+            text.indexOf(q) !== -1;
+
+          opt.hidden = !match;
+        });
+
+        // If currently selected option is hidden, reset the selection
+        const selected = select.selectedOptions[0];
+        if (selected && selected.hidden) {
+          select.value = '';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

@@ -132,17 +132,17 @@ $hasOptions = ($students && $students->num_rows > 0);
       z-index: 1200;
     }
 
-    .header-left { 
-      display: flex; 
-      align-items: center; 
-      gap: 16px; 
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
-    .site-title { 
-      font-size: 22px; 
-      font-weight: 700; 
-      color: #fff; 
-      margin: 0; 
+    .site-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      margin: 0;
     }
 
     .header-right {
@@ -299,6 +299,25 @@ $hasOptions = ($students && $students->num_rows > 0);
       background: #f5f5f5;
       cursor: not-allowed;
       opacity: 0.6;
+    }
+
+    /* search input style (same vibe as add-student) */
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+      font-size: 14px;
+      font-family: 'Poppins', sans-serif;
+      margin-bottom: 8px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--purple-start);
+      box-shadow: 0 0 0 3px rgba(106,17,203,0.08);
     }
 
     /* ---------- Action Buttons ---------- */
@@ -474,7 +493,7 @@ $hasOptions = ($students && $students->num_rows > 0);
 
   <div class="content">
     <div class="content-card">
-      <h2 class="page-title"> Add New Grade</h2>
+      <h2 class="page-title">Add New Grade</h2>
 
       <?php if (isset($_GET['error'])): ?>
         <div class="error">
@@ -497,16 +516,38 @@ $hasOptions = ($students && $students->num_rows > 0);
       <?php endif; ?>
 
       <form method="POST" autocomplete="off">
+        <!--  Search student (fast filter, like add-student) -->
+        <div class="form-group">
+          <label for="student_search">Search student</label>
+          <input
+            type="search"
+            id="student_search"
+            class="search-input"
+            placeholder="Search by name or student number"
+            aria-label="Search student by name or number"
+            <?= $hasOptions ? '' : 'disabled' ?>
+          >
+          <div class="note">Type to filter the student list below. </div>
+        </div>
+
         <div class="form-group">
           <label for="studentID">Student</label>
           <select name="studentID" id="studentID" required <?= $hasOptions ? '' : 'disabled' ?>>
             <option value=""><?= $hasOptions ? 'Select Student' : 'No eligible students' ?></option>
             <?php if ($hasOptions): ?>
-              <?php while ($row = $students->fetch_assoc()): 
+              <?php while ($row = $students->fetch_assoc()):
                 $sel = ($preselected_student > 0 && $preselected_student === (int)$row['id']) ? 'selected' : '';
+                $fullName = $row['fullName'];
+                $studNum  = $row['studentNumber'];
+                $label    = $fullName . (trim($studNum) ? ' — ' . $studNum : '');
               ?>
-                <option value="<?= (int)$row['id'] ?>" <?= $sel ?>>
-                  <?= htmlspecialchars($row['fullName'] . (trim($row['studentNumber']) ? ' — ' . $row['studentNumber'] : '')) ?>
+                <option
+                  value="<?= (int)$row['id'] ?>"
+                  <?= $sel ?>
+                  data-name="<?= htmlspecialchars(strtolower($fullName)) ?>"
+                  data-number="<?= htmlspecialchars(strtolower($studNum)) ?>"
+                >
+                  <?= htmlspecialchars($label) ?>
                 </option>
               <?php endwhile; ?>
             <?php endif; ?>
@@ -534,6 +575,47 @@ $hasOptions = ($students && $students->num_rows > 0);
       </form>
     </div>
   </div>
+
+  <!--  Fast search: hide/show options instead of rebuilding -->
+  <script>
+    (function () {
+      const searchInput = document.getElementById('student_search');
+      const select = document.getElementById('studentID');
+      if (!searchInput || !select) return;
+
+      const options = Array.from(select.options); // includes placeholder at index 0
+
+      searchInput.addEventListener('input', function (e) {
+        const q = (e.target.value || '').trim().toLowerCase();
+
+        options.forEach((opt, index) => {
+          // Keep placeholder always visible
+          if (index === 0) {
+            opt.hidden = false;
+            return;
+          }
+
+          const name = (opt.getAttribute('data-name') || '').toLowerCase();
+          const num  = (opt.getAttribute('data-number') || '').toLowerCase();
+          const text = (opt.textContent || '').toLowerCase();
+
+          const match =
+            q === '' ||
+            name.indexOf(q) !== -1 ||
+            num.indexOf(q) !== -1 ||
+            text.indexOf(q) !== -1;
+
+          opt.hidden = !match;
+        });
+
+        // Reset selection if selected option is hidden after filtering
+        const selected = select.selectedOptions[0];
+        if (selected && selected.hidden) {
+          select.value = '';
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
 <?php

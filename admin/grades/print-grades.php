@@ -5,7 +5,7 @@ if ($DEBUG) { ini_set('display_errors', 1); error_reporting(E_ALL); }
 
 // Paths & includes 
 session_start();
-$ROOT = dirname(__DIR__, 2); // from admin/print to project root
+$ROOT = dirname(__DIR__, 2); 
 require_once $ROOT . '/vendor/autoload.php';
 require_once $ROOT . '/db_connect.php';
 
@@ -197,6 +197,31 @@ if (empty($_GET['id'])) {
         font-weight: 600;
         color: var(--text-dark);
         font-size: 14px;
+      }
+
+      /* 🔍 Search input for student dropdown */
+      .search-input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        font-size: 14px;
+        font-family: 'Poppins', sans-serif;
+        background: #fff;
+        transition: all 0.2s ease;
+        margin-bottom: 6px;
+      }
+
+      .search-input:focus {
+        outline: none;
+        border-color: var(--purple-start);
+        box-shadow: 0 0 0 3px rgba(106,17,203,0.08);
+      }
+
+      .search-note {
+        font-size: 12px;
+        color: var(--text-gray);
+        margin-bottom: 10px;
       }
 
       select {
@@ -393,12 +418,26 @@ if (empty($_GET['id'])) {
         <h2 class="card-title">Generate Grade Report</h2>
         
         <form method="get" action="" target="_blank">
+          <!-- 🔍 Search box for student select -->
+          <div class="form-group">
+            <label for="student_search">Search student</label>
+            <input
+              type="search"
+              id="student_search"
+              class="search-input"
+              placeholder="Type a name to filter"
+              aria-label="Search student by name"
+            >
+          </div>
+
           <div class="form-group">
             <label for="student">Select Student</label>
             <select id="student" name="id" required>
               <option value="">-- Choose a student --</option>
               <?php while ($row = $res->fetch_assoc()): ?>
-                <option value="<?= (int)$row['id'] ?>"><?= htmlspecialchars($row['fullName']) ?></option>
+                <option value="<?= (int)$row['id'] ?>">
+                  <?= htmlspecialchars($row['fullName']) ?>
+                </option>
               <?php endwhile; ?>
             </select>
           </div>
@@ -413,6 +452,35 @@ if (empty($_GET['id'])) {
         <?php endif; ?>
       </div>
     </div>
+
+    <!--  Client-side filter for student dropdown -->
+    <script>
+      (function () {
+        const searchInput = document.getElementById('student_search');
+        const select = document.getElementById('student');
+        if (!searchInput || !select) return;
+
+        const allOptions = Array.from(select.querySelectorAll('option'));
+        const placeholder = allOptions[0];
+        const others = allOptions.slice(1);
+
+        searchInput.addEventListener('input', function (e) {
+          const q = (e.target.value || '').trim().toLowerCase();
+
+          // reset options
+          select.innerHTML = '';
+          select.appendChild(placeholder);
+
+          others.forEach(opt => {
+            const text = (opt.textContent || '').toLowerCase();
+            const match = q === '' || text.indexOf(q) !== -1;
+            if (match) {
+              select.appendChild(opt);
+            }
+          });
+        });
+      })();
+    </script>
   </body>
   </html>
   <?php
